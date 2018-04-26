@@ -20,14 +20,18 @@ def run(args):
     train_set = dataset.TextDataset(config=configuration.dataset_config, mode='train')
     train_loader = DataLoader(train_set, batch_size=configuration.train_config['batch'], shuffle=True, num_workers=1)
 
+    eval_set = dataset.TextDataset(config=configuration.dataset_config, mode='eval')
+    eval_loader = DataLoader(eval_set, batch_size=configuration.train_config['batch'], shuffle=True, num_workers=1)
+
     # model
     net = model.CharCNN(config=configuration.model_config)
+    # net = model.NaiveNN(config=configuration.model_config)
 
     # optimizer
-    optimizer = optim.SGD(net.parameters(), lr=configuration.train_config['lr'])
+    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9)
 
     # criterion
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.NLLLoss()
 
     # train
     for epoch in range(configuration.train_config['epochs']):
@@ -39,7 +43,7 @@ def run(args):
         tbar = tqdm.tqdm(total=len(train_loader)) # hard code
 
         for batch_idx, sample in enumerate(train_loader):
-            
+
             tbar.update(1)
 
             feature, target = sample['feature'], sample['target']
@@ -51,7 +55,7 @@ def run(args):
             output = net(feature)
             
             # 3. loss
-            loss = F.nll_loss(output, target)
+            loss = criterion(output, target)
 
             # 4. backward
             loss.backward()
@@ -64,16 +68,19 @@ def run(args):
         tbar.close()
 
         print(running_loss)
-        
+
         # Testing
         print('Testing')
 
         positive = 0
         negative = 0
 
-        vbar = tqdm.tqdm(total=len(train_loader))
+        trump = 0
+        hillary = 0
 
-        for batch_idx, sample in enumerate(train_loader):
+        vbar = tqdm.tqdm(total=len(eval_loader))
+
+        for batch_idx, sample in enumerate(eval_loader):
         
             vbar.update(1)
 
@@ -84,17 +91,22 @@ def run(args):
 
             _, index = output.max(1)
 
-            # print(index.size(), target.size())
+            # print(torch.sum(index).data[0], torch.sum(target).data[0])
             # print(torch.sum(index == target), torch.sum(index != target))
 
             positive += (torch.sum(index == target)).data[0]
             negative += (torch.sum(index != target)).data[0]
 
+            hillary += (torch.sum(1 == target)).data[0]
+            trump += (torch.sum(0 == target)).data[0]
+
             # print(positive, negative)
 
         vbar.close()
 
-        print(positive, negative)
+        print('acc: ', positive / (positive + negative), 'positive: ', positive, 'negative: ', negative)
+        print('hillary: ', hillary, 'trump: ', trump)
+
 
 if __name__ == '__main__':
     args = parser.parse_args()

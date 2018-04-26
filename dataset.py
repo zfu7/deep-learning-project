@@ -4,11 +4,14 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 import torch.autograd as autograd
 
+from sklearn.utils import shuffle
+
 import alphabet
 
 class TextDataset(Dataset):
-    def __init__(self, config=None, mode='train'):
+    def __init__(self, config=None, mode='train', ratio=0.8):
         self.mode = mode
+        self.ratio = ratio
 
         self.data_path = config['path']
         self.lowercase = config['lowercase']
@@ -25,10 +28,18 @@ class TextDataset(Dataset):
 
         self.load()
 
+        self.text, self.label = shuffle(self.text, self.label)
+
     def __len__(self):
-        return len(self.label)
+        if self.mode == 'train':
+            return int(len(self.label) * self.ratio)
+        else:
+            return int(len(self.label) * (1.0 - self.ratio))
 
     def __getitem__(self, idx):
+        if self.mode != 'train':
+            idx += int(len(self.label) * self.ratio)
+
         return self.quantization(idx)
 
     def load(self):
@@ -42,39 +53,43 @@ class TextDataset(Dataset):
 
             for index, row in enumerate(reader):
 
-                # if row[KEY_LABEL] == "realDonaldTrump":
-                #     self.label.append(0)
-                # if row[KEY_LABEL] == "HillaryClinton":
-                #     self.label.append(1)
-
                 self.label.append(row[KEY_LABEL])
                 self.text.append(row[KEY_TEXT].lower()[:row[KEY_TEXT].find("https://")-1])
+                # self.text.append(row[KEY_TEXT].lower())
 
     def quantization(self, idx):
         x = torch.zeros((self.feature_size, self.feature_length))
-        y = torch.zeros(self.class_size)
 
         sequence = self.text[idx]
 
-        for idx, c in enumerate(sequence):
-            if idx >= self.feature_length:
+        for i, c in enumerate(sequence):
+            if i >= self.feature_length:
                 break
 
             if self.alphabet.find(c) == -1:
                 continue
-            x[self.alphabet.find(c), idx] = 1
 
-        y[self.table[self.label[idx]]] = 1
+            x[self.alphabet.find(c), i] = 1
 
-        return {'feature':x, 'target': self.table[self.label[idx]]}
+        if self.label[idx] == 'realDonaldTrump':
+            return {'feature': x, 'target': 0}
+        else:
+            return {'feature': x, 'target': 1}
+
+        # return {'feature':x, 'target': self.table[self.label[idx]]}
+        
 
     def weight(self):
-        positive = 0
+        trump = 0
+        hillary = 0
 
-        for y in self.label:
-            positive += self.table[y]
+        for idx in range(len(self.label)):
+            if self.label[idx] == 'realDonaldTrump':
+                trump += 1
+            else:
+                hillary += 1
 
-        return positive
+        return trump, hillary
 
 if __name__ == '__main__':
     
@@ -83,11 +98,25 @@ if __name__ == '__main__':
     dataset_config = {
         'path': label_data_path,
         'lowercase': True,
-        'length': 50,
+        'length': 100,
         'class_size': 2
     }
 
     train_dataset = TextDataset(dataset_config)
     train_loader = DataLoader(train_dataset, batch_size=1, num_workers=1)
 
+    # print(train_dataset.label)
     print(train_dataset.weight())
+
+    positive = 0
+
+    for batch_idx, sample in enumerate(train_loader):
+
+        feature, target = sample['feature'], sample['target']
+
+        positive += target
+
+    print(positive)
+    # sample = train_dataset.__getitem__(10)
+
+    # print(sample['feature'][:, 0])

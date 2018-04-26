@@ -12,7 +12,7 @@ model_config = {
 }
 
 train_config = {
-    'lr': 0.05,
-    'epochs': 10,
-    'batch': 1
+    'lr': 0.1,
+    'epochs': 100,
+    'batch': 100
 }

@@ -9,14 +9,9 @@ from torch.autograd import Variable
 import argparse
 import tqdm
 
-import dataset_word
-import dataset_char
-
-import char_cnn
-import recurrent_cnn
-
-import config_char
-import config_word
+from datasets import dataset_char, dataset_word
+from models import char_cnn, recurrent_cnn
+from configs import config_char, config_word
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
 

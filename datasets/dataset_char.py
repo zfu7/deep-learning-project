@@ -6,7 +6,7 @@ import torch.autograd as autograd
 
 from sklearn.utils import shuffle
 
-import alphabet
+from datasets import alphabet
 
 class CharDataset(Dataset):
     def __init__(self, config=None, mode='train', ratio=0.8):
@@ -91,30 +91,18 @@ class CharDataset(Dataset):
 
 if __name__ == '__main__':
     
-    label_data_path = '../data/tweets.csv'
+    pass
 
-    dataset_config = {
-        'path': label_data_path,
-        'lowercase': True,
-        'length': 100,
-        'class_size': 2
-    }
+    # label_data_path = '../../data/tweets.csv'
 
-    train_dataset = TextDataset(dataset_config)
-    train_loader = DataLoader(train_dataset, batch_size=1, num_workers=1)
+    # dataset_config = {
+    #     'path': label_data_path,
+    #     'lowercase': True,
+    #     'length': 100,
+    #     'class_size': 2
+    # }
 
-    # print(train_dataset.label)
-    print(train_dataset.weight())
+    # train_dataset = CharDataset(dataset_config)
+    # train_loader = DataLoader(train_dataset, batch_size=1, num_workers=1)
 
-    positive = 0
-
-    for batch_idx, sample in enumerate(train_loader):
-
-        feature, target = sample['feature'], sample['target']
-
-        positive += target
-
-    print(positive)
-    # sample = train_dataset.__getitem__(10)
-
-    # print(sample['feature'][:, 0])
+    # print(train_dataset.weight())

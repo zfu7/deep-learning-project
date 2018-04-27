@@ -7,14 +7,15 @@ model_config = {
 }
 
 dataset_config = {
-    'data_path': '../data/tweets.csv',
+    'data_path'     : '../data/tweets.csv',
     'embedding_path': '../glove/glove.twitter.27B.50d.txt',
     
     'embedding_dim' : 50
 }
 
 train_config = {
-    'lr': 0.1,
-    'epochs': 100,
-    'batch': 1
+    'lr'            : 0.005,
+    'momentum'      : 0.9,
+    'epochs'        : 100,
+    'batch'         : 1,
 }

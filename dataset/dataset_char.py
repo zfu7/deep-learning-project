@@ -8,7 +8,7 @@ from sklearn.utils import shuffle
 
 import alphabet
 
-class TextDataset(Dataset):
+class CharDataset(Dataset):
     def __init__(self, config=None, mode='train', ratio=0.8):
         self.mode = mode
         self.ratio = ratio

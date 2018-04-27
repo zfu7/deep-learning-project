@@ -12,41 +12,52 @@ import tqdm
 from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn
 from configs import config_char, config_word
+from configs import config_tweets, config_uci_news
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
 parser.add_argument('--model', type=str, help='model for (char, word)')
+parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
 
 def run(args):
+    if args.dataset == 'tweets':
+        dataset_config = config_tweets.dataset_config
+    elif args.dataset == 'news':
+        dataset_config = config_uci_news.dataset_config
+    else:
+        raise ValueError('unknown dataset: ' + args.dataset)
+
     if args.model == 'char':
         # dataset
         dataset = dataset_char.CharDataset
-        
         # configuration
         config = config_char
-
         # model
         model = char_cnn.CharCNN
+
+        # adjust output channels size
+        config.model_config['fc_layers'][-1][1] = len(dataset_config['table'])
 
     elif args.model == 'word':
         # dataset
         dataset = dataset_word.WordDataset
-        
         # configuration
         config = config_word
-
         # model
         model = recurrent_cnn.RCNN
+        
+        # adjust output channels size
+        config.model_config['label_dim'] = len(dataset_config['table'])
 
     else:
         raise ValueError('unknown model type: ' + args.model)
 
     # data loader
     print('loading dataset')
-    train_set = dataset(config=config.dataset_config, mode='train')
+    train_set = dataset(config=dataset_config, mode='train')
     train_loader = DataLoader(train_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
 
-    eval_set = dataset(config=config.dataset_config, mode='eval')
+    eval_set = dataset(config=dataset_config, mode='eval')
     eval_loader = DataLoader(eval_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
 
     # model
@@ -67,6 +78,8 @@ def run(args):
 
         tbar = tqdm.tqdm(total=len(train_loader)) # hard code
 
+        batch = 0
+
         for batch_idx, sample in enumerate(train_loader):
 
             tbar.update(1)
@@ -84,6 +97,10 @@ def run(args):
             
             # 3. loss
             loss = criterion(output, target)
+
+            if batch < 100 and args.model == 'word':
+                batch += 1
+                continue
 
             # 4. backward
             loss.backward()

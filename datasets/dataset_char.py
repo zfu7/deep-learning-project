@@ -1,23 +1,34 @@
 import csv
-import torch
+import re
+import numpy as np
 
-from torch.utils.data import DataLoader, Dataset
+import torch
 import torch.autograd as autograd
+from torch.utils.data import DataLoader, Dataset
 
 from sklearn.utils import shuffle
 
 from datasets import alphabet
+# import alphabet
+
+from collections import Counter
 
 class CharDataset(Dataset):
     def __init__(self, config=None, mode='train', ratio=0.8):
         self.mode = mode
         self.ratio = ratio
 
+        self.alphabet = alphabet.alphabet
+
+        self.KEY_LABEL = config['key_label']
+        self.KEY_TEXT = config['key_text']
+
+        self.need_regex = config['regex']
+
         self.data_path = config['path']
         self.lowercase = config['lowercase']
 
-        self.alphabet = alphabet.alphabet
-        self.table = alphabet.table
+        self.table = config['table']
 
         self.feature_length = config['length']
         self.feature_size = len(self.alphabet)
@@ -43,25 +54,26 @@ class CharDataset(Dataset):
         return self.quantization(idx)
 
     def load(self):
-        KEY_LABEL = 1
-        KEY_TEXT = 2
-
         with open(self.data_path, 'r') as f:
             reader = csv.reader(f, delimiter=',', quotechar='"')
 
             next(reader, None)
 
             for index, row in enumerate(reader):
-
-                self.label.append(row[KEY_LABEL])
-                self.text.append(row[KEY_TEXT].lower()[:row[KEY_TEXT].find("https://")-1])
+                self.label.append(row[self.KEY_LABEL])
+                self.text.append(row[self.KEY_TEXT])
 
     def quantization(self, idx):
+        sentence = self.text[idx]
+        if self.need_regex:
+            sentence = re.sub(r'^https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
+            sentence = re.sub(r'[^a-zA-Z]', ' ', sentence, flags=re.MULTILINE)
+
         x = torch.zeros((self.feature_size, self.feature_length))
 
-        sequence = self.text[idx]
+        # sequence = self.text[idx]
 
-        for i, c in enumerate(sequence):
+        for i, c in enumerate(sentence):
             if i >= self.feature_length:
                 break
 
@@ -70,39 +82,34 @@ class CharDataset(Dataset):
 
             x[self.alphabet.find(c), i] = 1
 
-        if self.label[idx] == 'realDonaldTrump':
-            return {'feature': x, 'target': 0}
-        else:
-            return {'feature': x, 'target': 1}
-
-        # return {'feature':x, 'target': self.table[self.label[idx]]}
+        return {'feature':x, 'target': self.table[self.label[idx]]}
 
     def weight(self):
-        trump = 0
-        hillary = 0
-
-        for idx in range(len(self.label)):
-            if self.label[idx] == 'realDonaldTrump':
-                trump += 1
-            else:
-                hillary += 1
-
-        return trump, hillary
+        return Counter(self.label)
 
 if __name__ == '__main__':
-    
-    pass
 
-    # label_data_path = '../../data/tweets.csv'
+    path = '../../data/uci-news-aggregator.csv'
 
-    # dataset_config = {
-    #     'path': label_data_path,
-    #     'lowercase': True,
-    #     'length': 100,
-    #     'class_size': 2
-    # }
+    table = {
+        'b': 0,
+        't': 1,
+        'e': 2,
+        'm': 3,
+    }
 
-    # train_dataset = CharDataset(dataset_config)
-    # train_loader = DataLoader(train_dataset, batch_size=1, num_workers=1)
+    dataset_config = {
+        'lowercase'     : True,
+        'length'        : 50,
+        
+        'path'          : path,
+        'table'         : table,
+        'key_label'     : 4,
+        'key_text'      : 1,
+        'regex'         : False,
+    }
 
-    # print(train_dataset.weight())
+    train_dataset = CharDataset(dataset_config)
+    train_loader = DataLoader(train_dataset, batch_size=1, num_workers=1)
+
+    print(train_dataset.weight())

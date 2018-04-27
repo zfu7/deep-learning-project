@@ -75,8 +75,3 @@ l = [
 alphabet = ""
 for c in l:
     alphabet = alphabet + c
-
-table = {
-    'realDonaldTrump': 0,
-    'HillaryClinton': 1
-}

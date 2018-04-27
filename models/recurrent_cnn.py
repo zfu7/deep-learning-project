@@ -18,8 +18,9 @@ class RCNN(nn.Module):
         self.embedding_dim = config['embedding_dim']
         self.hidden_dim = config['hidden_dim']
         self.context_dim = config['context_dim']
-        self.label_dim = config['label_dim']
         self.lstm_layers = config['lstm_layers']
+
+        self.label_dim = config['label_dim']
 
         # essentially it is a bidirectional lstm
         self.bilstm = nn.LSTM(input_size=self.embedding_dim, hidden_size=self.context_dim, num_layers=self.lstm_layers, dropout=0.5, bidirectional=True)

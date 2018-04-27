@@ -14,8 +14,8 @@ dataset_config = {
 }
 
 train_config = {
-    'lr'            : 0.005,
+    'lr'            : 0.01,
     'momentum'      : 0.9,
     'epochs'        : 100,
-    'batch'         : 1,
+    'batch'         : 10,
 }

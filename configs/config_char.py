@@ -1,10 +1,3 @@
-dataset_config = {
-    'path'          : '../data/tweets.csv',
-    'lowercase'     : True,
-    'length'        : 100,
-    'class_size'    : 2
-}
-
 # input channels, output channels, kernel size, batch normalization, max pooling
 conv_config = [
     [70, 32, 7, True, True],
@@ -18,7 +11,7 @@ conv_config = [
 fc_config = [
     [192, 256, True],
     [256, 256, True],
-    [256, 2,   False],
+    [256, 0,   False],
 ]
 
 model_config = {

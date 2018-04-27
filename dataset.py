@@ -55,7 +55,6 @@ class TextDataset(Dataset):
 
                 self.label.append(row[KEY_LABEL])
                 self.text.append(row[KEY_TEXT].lower()[:row[KEY_TEXT].find("https://")-1])
-                # self.text.append(row[KEY_TEXT].lower())
 
     def quantization(self, idx):
         x = torch.zeros((self.feature_size, self.feature_length))
@@ -77,7 +76,6 @@ class TextDataset(Dataset):
             return {'feature': x, 'target': 1}
 
         # return {'feature':x, 'target': self.table[self.label[idx]]}
-        
 
     def weight(self):
         trump = 0

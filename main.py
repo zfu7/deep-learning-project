@@ -8,6 +8,7 @@ from torch.autograd import Variable
 
 import argparse
 import tqdm
+import numpy as np
 
 from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn, char_vgg, char_res
@@ -76,88 +77,122 @@ def run(args):
     # criterion
     criterion = nn.NLLLoss()
 
+    n_epochs = config.train_config['epochs']
+
+    loss        = np.zeros(n_epochs)
+    train_acc   = np.zeros(n_epochs)
+    val_acc     = np.zeros(n_epochs)
+
     # train
+    if config.file_config['pretrained']:
+        net.load_state_dict(torch.load(config.file_config['model'] + '_' + args.dataset + '.py'))
+
     for epoch in range(config.train_config['epochs']):
-        # Training
-        print('Training')
-
-        running_loss = 0
-
-        tbar = tqdm.tqdm(total=len(train_loader)) # hard code
-
-        batch = 0
-
-        for batch_idx, sample in enumerate(train_loader):
-
-            tbar.update(1)
-
-            feature, target = sample['feature'], sample['target']
-            feature, target = Variable(feature).float(), Variable(target).long()
-
-            if feature.size() == 1:
-                continue
-            
-            optimizer.zero_grad()
-
-            # 2. forward
-            output = net(feature)
-            
-            # 3. loss
-            loss = criterion(output, target)
-
-            if batch < 100 and args.type == 'word':
-                batch += 1
-                continue
-
-            # 4. backward
-            loss.backward()
-
-            # 5. optimize
-            optimizer.step()
-
-            running_loss += loss.data.item()
-
-        tbar.close()
-
-        print(running_loss)
-
-        # Testing
-        print('Testing')
-
-        positive = 0
-        negative = 0
-
-        trump = 0
-        hillary = 0
-
-        vbar = tqdm.tqdm(total=len(eval_loader))
-
-        for batch_idx, sample in enumerate(eval_loader):
+        torch.save(net.state_dict(), config.file_config['model'] + '_' + args.dataset + '.py')
         
-            vbar.update(1)
+        loss[epoch]         = (train(train_loader, net, optimizer, criterion))
 
-            feature, target = sample['feature'], sample['target']
-            feature, target = Variable(feature).float(), Variable(target).long()
+        train_acc[epoch]    = (validate(train_loader, net, 'train'))
+        val_acc[epoch]      =(validate(eval_loader, net, 'val'))
 
-            if feature.size() == 1:
-                continue
+        save_arr(loss, config.file_config['loss'] + args.dataset)
+        save_arr(train_acc, config.file_config['acc'] + '_' + 'train' + '_' + args.dataset)
+        save_arr(val_acc, config.file_config['acc'] + '_' + 'val' + '_' + args.dataset)
 
-            output = net(feature)
 
-            _, index = output.max(1)
+def train(loader, net, optimizer, criterion):
+    # Training
+    print('Training')
 
-            positive += (torch.sum(index == target)).data.item()
-            negative += (torch.sum(index != target)).data.item()
+    running_loss = 0
 
-            # hillary += (torch.sum(1 == target)).data.item()
-            # trump += (torch.sum(0 == target)).data.item()
+    tbar = tqdm.tqdm(total=len(loader)) # hard code
 
-            # print(positive, negative)
+    batch = 0
 
-        vbar.close()
+    for batch_idx, sample in enumerate(loader):
 
-        print('acc: ', positive / (positive + negative), 'positive: ', positive, 'negative: ', negative)
-        # print('hillary: ', hillary, 'trump: ', trump)
+        tbar.update(1)
+
+        feature, target = sample['feature'], sample['target']
+        feature, target = Variable(feature).float(), Variable(target).long()
+
+        if feature.size() == 1:
+            continue
+        
+        optimizer.zero_grad()
+
+        # 2. forward
+        output = net(feature)
+        
+        # 3. loss
+        loss = criterion(output, target)
+
+        # if batch < 100 and args.type == 'word':
+        #     batch += 1
+        #     continue
+
+        # 4. backward
+        loss.backward()
+
+        # 5. optimize
+        optimizer.step()
+
+        running_loss += loss.data.item()
+
+    tbar.close()
+
+    print(running_loss)
+
+    return running_loss
+
+
+def validate(loader, net, mode=None):
+    # validate
+    print('Validate')
+
+    positive = 0
+    negative = 0
+
+    vbar = tqdm.tqdm(total=len(loader))
+
+    for batch_idx, sample in enumerate(loader):
+    
+        vbar.update(1)
+
+        feature, target = sample['feature'], sample['target']
+        feature, target = Variable(feature).float(), Variable(target).long()
+
+        if feature.size() == 1:
+            continue
+
+        output = net(feature)
+
+        _, index = output.max(1)
+
+        positive += (torch.sum(index == target)).data.item()
+        negative += (torch.sum(index != target)).data.item()
+
+    vbar.close()
+
+    acc = positive / (positive + negative)
+
+    print(mode, 'acc: ', acc, 'positive: ', positive, 'negative: ', negative)
+
+    return acc
+
+
+def save_arr(data, filename):
+    f = open(filename, 'wb')
+    np.save(f, data)
+    f.close()
+
+
+def load_arr(filename):
+    f = open(filename, 'rb')
+    data = np.load(f)
+    f.close()
+    return data
 
 
 if __name__ == '__main__':

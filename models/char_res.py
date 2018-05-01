@@ -41,7 +41,7 @@ class CharRes(nn.Module):
         super(CharRes, self).__init__()
 
         self.conv = nn.Conv1d(config['input'], config['residual'][0][0], kernel_size=3, stride=1, padding=1)
-        self.bn   = nn.BatchNorm1d(4)
+        self.bn   = nn.BatchNorm1d(config['residual'][0][0])
 
         self.res_layers = []
         for idx in range(len(config['residual'])):
@@ -97,18 +97,23 @@ if __name__ == '__main__':
     # input channels, output channels, kernel size, batch normalization, max pooling
 
     res_config = [
-        [4,  8,  2, 1],
-        [8,  16, 2, 2],
-        [16, 32, 2, 2],
-        [32, 64, 2, 1],
+        [64,  64,  2, 1],
+        [64,  128, 2, 2],
+        [128, 256, 2, 2],
+        [256, 512, 2, 1],
     ]
 
-    config = {
+    fc_config = [
+        [1536, 2, False],
+    ]
+
+    model_config = {
         'input'         : 70,
         'residual'      : res_config,
+        'fc_layers'     : fc_config,
     }
 
-    net = CharRes(config)
+    net = CharRes(model_config)
     # print(net)
 
     paras = sum(p.numel() for p in net.parameters() if p.requires_grad)

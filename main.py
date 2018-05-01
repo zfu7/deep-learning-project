@@ -10,13 +10,14 @@ import argparse
 import tqdm
 
 from datasets import dataset_char, dataset_word
-from models import char_cnn, recurrent_cnn
-from configs import config_char, config_word
+from models import char_cnn, recurrent_cnn, char_vgg, char_res
+from configs import config_char_cnn, config_char_vgg, config_char_res, config_word
 from configs import config_tweets, config_uci_news
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
-parser.add_argument('--model', type=str, help='model for (char, word)')
+parser.add_argument('--type', type=str, help='type for (char, word)')
+parser.add_argument('--model', type=str, help='type for (char, word)')
 parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
 
 def run(args):
@@ -27,18 +28,24 @@ def run(args):
     else:
         raise ValueError('unknown dataset: ' + args.dataset)
 
-    if args.model == 'char':
+    if args.type == 'char':
         # dataset
         dataset = dataset_char.CharDataset
         # configuration
-        config = config_char
-        # model
-        model = char_cnn.CharCNN
+        if args.model == 'cnn':
+            config = config_char_cnn
+            model = char_cnn.CharCNN
+        elif args.model == 'vgg':
+            config = config_char_vgg
+            model = char_vgg.CharVgg
+        elif args.model == 'res':
+            config = config_char_res
+            model = char_res.CharRes
 
         # adjust output channels size
         config.model_config['fc_layers'][-1][1] = len(dataset_config['table'])
 
-    elif args.model == 'word':
+    elif args.type == 'word':
         # dataset
         dataset = dataset_word.WordDataset
         # configuration
@@ -50,7 +57,7 @@ def run(args):
         config.model_config['label_dim'] = len(dataset_config['table'])
 
     else:
-        raise ValueError('unknown model type: ' + args.model)
+        raise ValueError('unknown type type: ' + args.type)
 
     # data loader
     print('loading dataset')
@@ -98,7 +105,7 @@ def run(args):
             # 3. loss
             loss = criterion(output, target)
 
-            if batch < 100 and args.model == 'word':
+            if batch < 100 and args.type == 'word':
                 batch += 1
                 continue
 

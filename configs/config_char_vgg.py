@@ -1,15 +1,15 @@
 # input channels, output channels, kernel size, batch normalization, max pooling
 conv_config = [
-    [70, 32, 7, True, True],
-    [32, 32, 7, True, False],
-    [32, 32, 3, True, False],
-    [32, 32, 3, True, False],
-    [32, 32, 3, True, True],
+    [70, 32, 3],
+    [32, 32, 3],
+    [32, 32, 3],
+    [32, 32, 3],
+    [32, 32, 3],
 ]
 
 # input features, output features, if activate and dropout
 fc_config = [
-    [192, 256, True],
+    [96,  256, True],
     [256, 256, True],
     [256, 0,   False],
 ]

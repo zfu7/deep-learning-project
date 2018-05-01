@@ -5,10 +5,10 @@ import torch.nn.init as init
 
 from torch.autograd import Variable
 
-class CharCNN(nn.Module):
+class CharVgg(nn.Module):
 
     def __init__(self, config=None):
-        super(CharCNN, self).__init__()
+        super(CharVgg, self).__init__()
 
         self.dropout_rate = config['dropout']
 
@@ -43,14 +43,15 @@ class CharCNN(nn.Module):
     def _build_conv_layer(self, config):
         layers = []
 
-        layers.append(nn.Conv1d(in_channels=config[0], out_channels=config[1], kernel_size=config[2], stride=1))
+        layers.append(nn.Conv1d(in_channels=config[0], out_channels=config[1], kernel_size=config[2], padding=1))
+        layers.append(nn.BatchNorm1d(num_features=config[1]))
         layers.append(nn.ReLU(inplace=True))
-
-        if config[3]:
-            layers.append(nn.BatchNorm1d(num_features=config[1]))
-
-        if config[4]:
-            layers.append(nn.MaxPool1d(kernel_size=3, stride=3))
+        
+        layers.append(nn.Conv1d(in_channels=config[1], out_channels=config[1], kernel_size=config[2], padding=1))
+        layers.append(nn.BatchNorm1d(num_features=config[1]))
+        layers.append(nn.ReLU(inplace=True))
+        
+        layers.append(nn.MaxPool1d(kernel_size=2, stride=2))
 
         return nn.Sequential(*layers)
 
@@ -68,7 +69,7 @@ class CharCNN(nn.Module):
     def _initialize(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                init.kaiming_normal(m.weight.data)
+                init.kaiming_normal_(m.weight.data)
             if isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
@@ -93,26 +94,16 @@ class NaiveNN(nn.Module):
         return x
 
 if __name__ == '__main__':
-    # input channels, output channels, kernel size, batch normalization, max pooling
-
-    # conv_config = [
-    #     [70, 32, 7, True, True],
-    #     [32, 32, 7, True, False],
-    #     [32, 32, 3, True, False],
-    #     [32, 32, 3, True, False],
-    #     [32, 32, 3, True, True],
-    # ]
-
     conv_config = [
-        [70, 32, 7, True, True],
-        [32, 32, 7, True, False],
+        [70, 32, 3, True, True],
+        [32, 32, 3, True, False],
         [32, 32, 3, True, False],
         [32, 32, 3, True, False],
         [32, 32, 3, True, True],
     ]
 
     fc_layers = [
-        [192, 256, True],
+        [96,  256, True],
         [256, 256, True],
         [256, 2,   False],
     ]
@@ -123,7 +114,8 @@ if __name__ == '__main__':
         'fc_layers'     : fc_layers,
     }
 
-    net = CharCNN(config)
+    net = CharVgg(config)
+
 
     paras = sum(p.numel() for p in net.parameters() if p.requires_grad)
 

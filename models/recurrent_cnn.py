@@ -41,7 +41,8 @@ class RCNN(nn.Module):
 
         features = torch.cat((lstm_out.permute(1,0,2), x), dim=2)
 
-        outputs = F.tanh(self.feature2hidden(features)).permute(0, 2, 1)
+        # outputs = F.tanh(self.feature2hidden(features)).permute(0, 2, 1)
+        outputs = F.relu(self.feature2hidden(features)).permute(0, 2, 1)
 
         activations = F.max_pool1d(outputs, kernel_size=outputs.size()[2]).view(self.batch_size, -1)
 

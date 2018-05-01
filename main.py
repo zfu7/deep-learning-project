@@ -12,7 +12,8 @@ import numpy as np
 
 from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn, char_vgg, char_res
-from configs import config_char_cnn, config_char_vgg, config_char_res, config_word
+from configs import config_char_cnn, config_char_vgg, config_char_res
+from configs import config_word_rcnn
 from configs import config_tweets, config_uci_news
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
@@ -49,10 +50,13 @@ def run(args):
     elif args.type == 'word':
         # dataset
         dataset = dataset_word.WordDataset
-        # configuration
-        config = config_word
-        # model
-        model = recurrent_cnn.RCNN
+
+        if args.model == 'rcnn':
+            # configuration
+            config = config_word_rcnn   
+            # model
+            model = recurrent_cnn.RCNN
+
         
         # adjust output channels size
         config.model_config['label_dim'] = len(dataset_config['table'])
@@ -88,6 +92,8 @@ def run(args):
         net.load_state_dict(torch.load(config.file_config['model'] + '_' + args.dataset + '.py'))
 
     for epoch in range(config.train_config['epochs']):
+        print('epoch: ', epoch)
+
         torch.save(net.state_dict(), config.file_config['model'] + '_' + args.dataset + '.py')
         
         loss[epoch]         = (train(train_loader, net, optimizer, criterion))
@@ -95,7 +101,7 @@ def run(args):
         train_acc[epoch]    = (validate(train_loader, net, 'train'))
         val_acc[epoch]      =(validate(eval_loader, net, 'val'))
 
-        save_arr(loss, config.file_config['loss'] + args.dataset)
+        save_arr(loss, config.file_config['loss'] + '_' + args.dataset)
         save_arr(train_acc, config.file_config['acc'] + '_' + 'train' + '_' + args.dataset)
         save_arr(val_acc, config.file_config['acc'] + '_' + 'val' + '_' + args.dataset)
 
@@ -142,7 +148,7 @@ def train(loader, net, optimizer, criterion):
 
     tbar.close()
 
-    print(running_loss)
+    print('Training loss: ', running_loss)
 
     return running_loss
 

@@ -39,6 +39,7 @@ class CharDataset(Dataset):
 
         self.load()
 
+        # self.text, self.label = shuffle(self.text, self.label, random_state=1118)
         self.text, self.label = shuffle(self.text, self.label)
 
     def __len__(self):

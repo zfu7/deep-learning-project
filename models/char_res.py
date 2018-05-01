@@ -85,9 +85,7 @@ class CharRes(nn.Module):
             x = res_layer(x)
 
         x = self.avgpool(x)
-
         x = x.view(x.size(0), -1)
-
         x = self.fc(x)
 
         return F.log_softmax(x, dim=1)
@@ -97,14 +95,14 @@ if __name__ == '__main__':
     # input channels, output channels, kernel size, batch normalization, max pooling
 
     res_config = [
-        [64,  64,  2, 1],
-        [64,  128, 2, 2],
-        [128, 256, 2, 2],
-        [256, 512, 2, 1],
+        [128,64, 2, 1],
+        [64, 32, 2, 2],
+        [32, 16, 2, 2],
+        [16, 8, 2, 1],
     ]
 
     fc_config = [
-        [1536, 2, False],
+        [24, 2, False],
     ]
 
     model_config = {

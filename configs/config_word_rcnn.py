@@ -1,3 +1,5 @@
+model = 'rcnn'
+
 model_config = {
     'embedding_dim' : 50,
     'hidden_dim'    : 50,
@@ -14,8 +16,16 @@ dataset_config = {
 }
 
 train_config = {
-    'lr'            : 0.01,
+    'lr'            : 0.001,
     'momentum'      : 0.9,
     'epochs'        : 100,
     'batch'         : 10,
+}
+
+file_config = {
+    'pretrained'    : False,
+
+    'model'         : 'pretrained/' + model,
+    'loss'          : 'results/loss_' + model,
+    'acc'           : 'results/acc_' + model,
 }

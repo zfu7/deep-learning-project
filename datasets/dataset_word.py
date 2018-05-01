@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from sklearn.utils import shuffle
 
 class WordDataset(Dataset):
-    def __init__(self, config=None, mode='train', ratio=0.9):
+    def __init__(self, config=None, mode='train', ratio=0.8):
         self.mode = mode
         self.ratio = ratio
 
@@ -34,6 +34,7 @@ class WordDataset(Dataset):
         self.load_embedding(config['embedding_path'])
         self.load_dataset(config['path'])
 
+        # self.text, self.label = shuffle(self.text, self.label, random_state=1118)
         self.text, self.label = shuffle(self.text, self.label)
 
     def __len__(self):

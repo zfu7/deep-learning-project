@@ -25,6 +25,7 @@ parser.add_argument('--model', type=str, help='type for (char, word)')
 parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
 
 n_class = None
+table = None
 
 cuda_on = torch.cuda.is_available()
 
@@ -38,6 +39,9 @@ def run(args):
 
     global n_class
     n_class = len(dataset_config['table'])
+
+    global table
+    table = dataset_config['table']
 
     if args.type == 'char':
         # dataset
@@ -191,7 +195,7 @@ def validate(loader, net, mode=None):
 
         _, index = output.max(1)
 
-        c_mat += confusion_matrix(target, index)
+        c_mat += confusion_matrix(target, index, list(range(0, n_class)))
 
     vbar.close()
 

@@ -19,7 +19,7 @@ train_config = {
     'lr'            : 0.01,
     'momentum'      : 0.9,
     'epochs'        : 100,
-    'batch'         : 100,
+    'batch'         : 10,
 }
 
 file_config = {

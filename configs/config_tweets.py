@@ -9,7 +9,7 @@ table = {
 dataset_config = {
     'lowercase'     : True,
     'length'        : 100,
-    'word_size'     : 20,
+    'word_size'     : 10,
 
     'path'          : path,
 

@@ -16,7 +16,7 @@ from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn, char_vgg, char_res
 from configs import config_char_cnn, config_char_vgg, config_char_res
 from configs import config_word_rcnn
-from configs import config_tweets, config_uci_news, config_ag_news
+from configs import config_tweets, config_uci_news, config_ag_news, config_ag_news_test
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
@@ -38,6 +38,7 @@ def run(args):
     elif args.dataset == 'ag':
         dataset_config = config_ag_news.dataset_config
     elif args.dataset == 'ag_test':
+        args.dataset = 'ag'
         dataset_config = config_ag_news_test.dataset_config
     else:
         raise ValueError('unknown dataset: ' + args.dataset)
@@ -130,7 +131,7 @@ def run(args):
 
     elif args.mode == 'test':
         test_set = dataset(config=dataset_config, ratio=1.0)
-        test_loader = DataLoader(eval_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
+        test_loader = DataLoader(test_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1) 
 
         net = model(config=config.model_config)
         if cuda_on:
@@ -143,7 +144,7 @@ def run(args):
         else:
             net.load_state_dict(torch.load(model_path, map_location=lambda storage, location: 'cpu'))
         
-        validate(loader, net)
+        validate(test_loader, net)
 
 def train(loader, net, optimizer, criterion):
     # Training

@@ -23,9 +23,9 @@ model_config = {
 }
 
 train_config = {
-    'lr'            : 0.1,
+    'lr'            : 0.05,
     'momentum'      : 0.9,
-    'epochs'        : 20,
+    'epochs'        : 50,
     'batch'         : 100
 }
 

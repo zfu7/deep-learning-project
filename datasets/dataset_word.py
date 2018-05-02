@@ -69,6 +69,7 @@ class WordDataset(Dataset):
             sentence = re.sub(r'[^a-zA-Z]', ' ', sentence, flags=re.MULTILINE)
 
         x = torch.zeros((self.word_size, self.embedding_dim))
+        # x = torch.zeros((len(sentence) + 1, self.embedding_dim))
 
         for index, word in enumerate(sentence):
             if index >= self.word_size:

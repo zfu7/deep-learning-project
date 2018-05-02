@@ -13,7 +13,7 @@ conv_config = [
 fc_config = [
     [192, 256, True],
     [256, 256, True],
-    [192, 0,   False],
+    [256, 0,   False],
 ]
 
 model_config = {

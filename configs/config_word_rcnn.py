@@ -16,10 +16,10 @@ dataset_config = {
 }
 
 train_config = {
-    'lr'            : 0.001,
+    'lr'            : 0.01,
     'momentum'      : 0.9,
     'epochs'        : 100,
-    'batch'         : 10,
+    'batch'         : 100,
 }
 
 file_config = {

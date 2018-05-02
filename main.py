@@ -10,6 +10,8 @@ import argparse
 import tqdm
 import numpy as np
 
+from sklearn.metrics import confusion_matrix
+
 from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn, char_vgg, char_res
 from configs import config_char_cnn, config_char_vgg, config_char_res
@@ -22,6 +24,8 @@ parser.add_argument('--type', type=str, help='type for (char, word)')
 parser.add_argument('--model', type=str, help='type for (char, word)')
 parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
 
+n_class = None
+
 def run(args):
     if args.dataset == 'tweets':
         dataset_config = config_tweets.dataset_config
@@ -29,6 +33,9 @@ def run(args):
         dataset_config = config_uci_news.dataset_config
     else:
         raise ValueError('unknown dataset: ' + args.dataset)
+
+    global n_class
+    n_class = len(dataset_config['table'])
 
     if args.type == 'char':
         # dataset
@@ -45,7 +52,7 @@ def run(args):
             model = char_res.CharRes
 
         # adjust output channels size
-        config.model_config['fc_layers'][-1][1] = len(dataset_config['table'])
+        config.model_config['fc_layers'][-1][1] = n_class
 
     elif args.type == 'word':
         # dataset
@@ -59,7 +66,7 @@ def run(args):
 
         
         # adjust output channels size
-        config.model_config['label_dim'] = len(dataset_config['table'])
+        config.model_config['label_dim'] = n_class
 
     else:
         raise ValueError('unknown type type: ' + args.type)
@@ -157,10 +164,9 @@ def validate(loader, net, mode=None):
     # validate
     print('Validate')
 
-    positive = 0
-    negative = 0
-
     vbar = tqdm.tqdm(total=len(loader))
+
+    c_mat = np.zeros((n_class, n_class), dtype=np.integer)
 
     for batch_idx, sample in enumerate(loader):
     
@@ -176,12 +182,15 @@ def validate(loader, net, mode=None):
 
         _, index = output.max(1)
 
-        positive += (torch.sum(index == target)).data.item()
-        negative += (torch.sum(index != target)).data.item()
+        c_mat += confusion_matrix(target, index)
 
     vbar.close()
 
+    positive = np.trace(c_mat)
+    negative = np.sum(c_mat) - positive
     acc = positive / (positive + negative)
+
+    print(c_mat)
 
     print(mode, 'acc: ', acc, 'positive: ', positive, 'negative: ', negative)
 

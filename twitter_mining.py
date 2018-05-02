@@ -77,9 +77,12 @@ api = twitter.Api(
 miner = TweetMiner(api, result_limit=200)
 hillary = miner.mine_user_tweets(user="HillaryClinton")
 donald = miner.mine_user_tweets(user="realDonaldTrump")
+
 hillary = pd.DataFrame(hillary)
 donald = pd.DataFrame(donald)
-# print(hillary)
-hillary.to_csv('../data/mining_hillary.csv')
-donald.to_csv('../data/mining_donald.csv')
+
+frames = [hillary, donald]
+output = pd.concat(frames)
+
+output.to_csv('../data/tweets_test.csv')
 print ('Done.')

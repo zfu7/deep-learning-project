@@ -21,8 +21,8 @@ from configs import config_tweets, config_uci_news, config_ag_news, config_ag_ne
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
 parser.add_argument('--type', type=str, help='type for (char, word)')
-parser.add_argument('--model', type=str, help='type for (char, word)')
-parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
+parser.add_argument('--model', type=str, help='type for (rcnn, cnn, vgg, res)')
+parser.add_argument('--dataset', type=str, help='dataset for (tweets, news, ag, ag_test)')
 parser.add_argument('--mode', type=str, help='train or test', default='train')
 
 n_class = None
@@ -240,12 +240,14 @@ def validate(loader, net, mode=None):
 
 
 def save_arr(data, filename):
+    print(filename)
     f = open(filename, 'wb')
     np.save(f, data)
     f.close()
 
 
 def load_arr(filename):
+    print(filename)
     f = open(filename, 'rb')
     data = np.load(f)
     f.close()

@@ -20,8 +20,9 @@ def plot_acc(train_acc, val_acc):
     plt.legend(handles=[train, val], loc='lower left', ncol=3, fontsize=8)
     plt.title('Training and Validation Accuracy Plot: ' + args.model)
 
+    print(train_acc[-1], val_acc[-1])    
     # plt.show()
-    plt.savefig('figs/acc_' + args.dataset + '_' + args.model + '.png')
+    # plt.savefig('figs/acc_' + args.dataset + '_' + args.model + '.png')
     plt.close()
 
 def plot_loss(loss):
@@ -51,4 +52,4 @@ if __name__ == '__main__':
     val_acc = load_data(val_acc)
 
     plot_acc(train_acc, val_acc)
-    plot_loss(loss)
+    # plot_loss(loss)

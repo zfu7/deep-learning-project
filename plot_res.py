@@ -14,15 +14,23 @@ def plot_acc(train_acc, val_acc):
     train, = plt.plot(train_acc, label='Training')
     val, = plt.plot(val_acc, label='Validation')
 
+    axes = plt.gca()
+    axes.set_ylim([0.5,1.0])
+
     plt.legend(handles=[train, val], loc='lower left', ncol=3, fontsize=8)
     plt.title('Training and Validation Accuracy Plot: ' + args.model)
 
-    plt.show()
+    # plt.show()
+    plt.savefig('figs/acc_' + args.dataset + '_' + args.model + '.png')
+    plt.close()
 
 def plot_loss(loss):
     plt.plot(loss, label='Training')
     plt.title('Training Loss Plot: ' + args.model)
-    plt.show()
+    
+    # plt.show()
+    plt.savefig('figs/loss_' + args.dataset + '_' + args.model + '.png')
+    plt.close()
 
 def load_data(filename):
     f = open(filename, 'rb')

@@ -16,13 +16,14 @@ from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn, char_vgg, char_res
 from configs import config_char_cnn, config_char_vgg, config_char_res
 from configs import config_word_rcnn
-from configs import config_tweets, config_uci_news
+from configs import config_tweets, config_uci_news, config_ag_news
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
 parser.add_argument('--type', type=str, help='type for (char, word)')
 parser.add_argument('--model', type=str, help='type for (char, word)')
 parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
+parser.add_argument('--mode', type=str, help='train or test', default='train')
 
 n_class = None
 table = None
@@ -34,6 +35,10 @@ def run(args):
         dataset_config = config_tweets.dataset_config
     elif args.dataset == 'news':
         dataset_config = config_uci_news.dataset_config
+    elif args.dataset == 'ag':
+        dataset_config = config_ag_news.dataset_config
+    elif args.dataset == 'ag_test':
+        dataset_config = config_ag_news_test.dataset_config
     else:
         raise ValueError('unknown dataset: ' + args.dataset)
 
@@ -77,49 +82,68 @@ def run(args):
     else:
         raise ValueError('unknown type type: ' + args.type)
 
-    # data loader
-    print('loading dataset')
-    train_set = dataset(config=dataset_config, mode='train')
-    train_loader = DataLoader(train_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
+    if args.mode == 'train':
 
-    eval_set = dataset(config=dataset_config, mode='eval')
-    eval_loader = DataLoader(eval_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
+        # data loader
+        print('loading dataset')
+        train_set = dataset(config=dataset_config, mode='train')
+        train_loader = DataLoader(train_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
 
-    # model
-    net = model(config=config.model_config)
-    if cuda_on:
-        net = net.cuda()
+        eval_set = dataset(config=dataset_config, mode='eval')
+        eval_loader = DataLoader(eval_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
 
-    # optimizer
-    optimizer = optim.SGD(net.parameters(), lr=config.train_config['lr'], momentum=config.train_config['momentum'])
+        # model
+        net = model(config=config.model_config)
+        if cuda_on:
+            net = net.cuda()
 
-    # criterion
-    criterion = nn.NLLLoss()
+        # optimizer
+        optimizer = optim.SGD(net.parameters(), lr=config.train_config['lr'], momentum=config.train_config['momentum'])
 
-    n_epochs = config.train_config['epochs']
+        # criterion
+        criterion = nn.NLLLoss()
 
-    loss        = np.zeros(n_epochs)
-    train_acc   = np.zeros(n_epochs)
-    val_acc     = np.zeros(n_epochs)
+        n_epochs = config.train_config['epochs']
 
-    # train
-    if config.file_config['pretrained']:
-        net.load_state_dict(torch.load(config.file_config['model'] + '_' + args.dataset + '.py'))
+        loss        = np.zeros(n_epochs)
+        train_acc   = np.zeros(n_epochs)
+        val_acc     = np.zeros(n_epochs)
 
-    for epoch in range(config.train_config['epochs']):
-        print('epoch: ', epoch)
+        # train
+        if config.file_config['pretrained']:
+            net.load_state_dict(torch.load(config.file_config['model'] + '_' + args.dataset + '.py'))
 
-        torch.save(net.state_dict(), config.file_config['model'] + '_' + args.dataset + '.py')
+        for epoch in range(config.train_config['epochs']):
+            print('epoch: ', epoch)
+
+            torch.save(net.state_dict(), config.file_config['model'] + '_' + args.dataset + '.py')
+            
+            loss[epoch]         = (train(train_loader, net, optimizer, criterion))
+
+            train_acc[epoch]    = (validate(train_loader, net, 'train'))
+            val_acc[epoch]      =(validate(eval_loader, net, 'val'))
+
+            save_arr(loss, config.file_config['loss'] + '_' + args.dataset)
+            save_arr(train_acc, config.file_config['acc'] + '_' + 'train' + '_' + args.dataset)
+            save_arr(val_acc, config.file_config['acc'] + '_' + 'val' + '_' + args.dataset)
+
+
+    elif args.mode == 'test':
+        test_set = dataset(config=dataset_config, ratio=1.0)
+        test_loader = DataLoader(eval_set, batch_size=config.train_config['batch'], shuffle=True, num_workers=1)
+
+        net = model(config=config.model_config)
+        if cuda_on:
+            net = net.cuda()
+
+        model_path = config.file_config['model'] + '_' + args.dataset + '.py'
+
+        if cuda_on:
+            net.load_state_dict(torch.load(model_path))
+        else:
+            net.load_state_dict(torch.load(model_path, map_location=lambda storage, location: 'cpu'))
         
-        loss[epoch]         = (train(train_loader, net, optimizer, criterion))
-
-        train_acc[epoch]    = (validate(train_loader, net, 'train'))
-        val_acc[epoch]      =(validate(eval_loader, net, 'val'))
-
-        save_arr(loss, config.file_config['loss'] + '_' + args.dataset)
-        save_arr(train_acc, config.file_config['acc'] + '_' + 'train' + '_' + args.dataset)
-        save_arr(val_acc, config.file_config['acc'] + '_' + 'val' + '_' + args.dataset)
-
+        validate(loader, net)
 
 def train(loader, net, optimizer, criterion):
     # Training

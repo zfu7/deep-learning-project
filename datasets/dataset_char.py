@@ -70,6 +70,9 @@ class CharDataset(Dataset):
             sentence = re.sub(r'^https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
             sentence = re.sub(r'[^a-zA-Z]', ' ', sentence, flags=re.MULTILINE)
 
+        # print(self.label[idx])
+        # print(sentence)
+
         x = torch.zeros((self.feature_size, self.feature_length))
 
         # sequence = self.text[idx]

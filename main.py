@@ -16,7 +16,7 @@ from datasets import dataset_char, dataset_word
 from models import char_cnn, recurrent_cnn, char_vgg, char_res
 from configs import config_char_cnn, config_char_vgg, config_char_res
 from configs import config_word_rcnn
-from configs import config_tweets, config_uci_news, config_ag_news, config_ag_news_test, config_tweets_test
+from configs import config_tweets, config_uci_news, config_ag_news, config_ag_news_test, config_tweets_tonow
 
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
@@ -40,8 +40,8 @@ def run(args):
     elif args.dataset == 'ag_test':
         args.dataset = 'ag'
         dataset_config = config_ag_news_test.dataset_config
-    elif args.dataset == 'tweets_test':
-        dataset_config = config_tweets_test.dataset_config
+    elif args.dataset == 'tweets_tonow':
+        dataset_config = config_tweets_tonow.dataset_config
     else:
         raise ValueError('unknown dataset: ' + args.dataset)
 

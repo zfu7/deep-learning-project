@@ -84,5 +84,5 @@ donald = pd.DataFrame(donald)
 frames = [hillary, donald]
 output = pd.concat(frames)
 
-output.to_csv('../data/tweets_test.csv')
+output.to_csv('../data/tweets_tonow.csv')
 print ('Done.')

@@ -87,6 +87,8 @@ def run(args):
 
     # model
     net = model(config=config.model_config)
+    if cuda_on:
+        net = net.cuda()
 
     # optimizer
     optimizer = optim.SGD(net.parameters(), lr=config.train_config['lr'], momentum=config.train_config['momentum'])
@@ -195,13 +197,15 @@ def validate(loader, net, mode=None):
 
         _, index = output.max(1)
 
-        c_mat += confusion_matrix(target, index, list(range(0, n_class)))
+        c_mat += confusion_matrix(target.cpu().data.numpy(), 
+                                  index.cpu().data.numpy(),
+                                  list(range(0, n_class)))
 
     vbar.close()
 
     positive = np.trace(c_mat)
     negative = np.sum(c_mat) - positive
-    acc = positive / (positive + negative)
+    acc = np.float(positive) / np.float(positive + negative)
 
     print(c_mat)
 

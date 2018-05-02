@@ -57,7 +57,7 @@ class CharRes(nn.Module):
 
         for m in self.modules():
             if isinstance(m, nn.Conv1d):
-                init.kaiming_normal_(m.weight.data)
+                init.kaiming_normal(m.weight.data)
             if isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()

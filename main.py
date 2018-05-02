@@ -26,6 +26,8 @@ parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
 
 n_class = None
 
+cuda_on = torch.cuda.is_available()
+
 def run(args):
     if args.dataset == 'tweets':
         dataset_config = config_tweets.dataset_config
@@ -130,6 +132,10 @@ def train(loader, net, optimizer, criterion):
         feature, target = sample['feature'], sample['target']
         feature, target = Variable(feature).float(), Variable(target).long()
 
+        if cuda_on:
+            feature = feature.cuda()
+            target = target.cuda()
+
         if feature.size() == 1:
             continue
         
@@ -151,7 +157,7 @@ def train(loader, net, optimizer, criterion):
         # 5. optimize
         optimizer.step()
 
-        running_loss += loss.data.item()
+        running_loss += loss.data[0]
 
     tbar.close()
 
@@ -174,6 +180,9 @@ def validate(loader, net, mode=None):
 
         feature, target = sample['feature'], sample['target']
         feature, target = Variable(feature).float(), Variable(target).long()
+
+        if cuda_on:
+            feature, target = feature.cuda(), target.cuda()
 
         if feature.size() == 1:
             continue

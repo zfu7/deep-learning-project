@@ -145,7 +145,8 @@ def run(args):
         if cuda_on:
             net.load_state_dict(torch.load(model_path))
         else:
-            net.load_state_dict(torch.load(model_path, map_location=lambda storage, location: 'cpu'))
+            net.load_state_dict(torch.load(model_path))
+            # net.load_state_dict(torch.load(model_path, map_location=lambda storage, location: 'cpu'))
         
         validate(test_loader, net)
 

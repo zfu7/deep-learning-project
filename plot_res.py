@@ -5,8 +5,8 @@ import argparse
 parser = argparse.ArgumentParser(description='DL Final Project.')
 
 parser.add_argument('--type', type=str, help='type for (char, word)')
-parser.add_argument('--model', type=str, help='type for (char, word)')
-parser.add_argument('--dataset', type=str, help='dataset for (tweets, news)')
+parser.add_argument('--model', type=str, help='type for (rcnn, cnn, vgg, res)')
+parser.add_argument('--dataset', type=str, help='dataset for (tweets, news, ag, ag_test)')
 
 # args = None
 
